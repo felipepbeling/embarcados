@@ -11,12 +11,14 @@
 
 #include <asf.h>
 #include <stdio.h>
+#include <stdint.h>
 
-#define PI 3.14159265358979323846
+#define PI				3.14159265358979323846
+#define DIAMETRO_RODA	29						//tamanho da roda em polegadas
 
-struct usart_module usart_instance;
-struct usart_config usart_conf;
-
+enum movimento {STOPPED, RUNNING};
+	
+uint32_t relogio;
 /**
 *	Estrutura das grandezas medidas
 *	Todas as grandezas são do tipo float.
@@ -34,28 +36,18 @@ typedef struct{
 	float medSpeed; /**< Velocidade média, em km/h. */
 	float travelled; /**< Distância percorrida no percurso atual, em km */
 	uint32_t endTime; /**< Momento de encerramento da seção, quando o botão sw0 for precionado. */
+	movimento situacao; /**<identifica a condição atual da seção */
 	}ciclometro;
 
-/** \brief Realiza a configuração da comunicação serial
- *		entre a placa e o PC, por exemplo.
- *		Padão: 9600bps,  8 bits
- *		Após chamar init_usart().
- *
- * \param none
- * \return none
- *
- */  
-void config_usarts(void);
 
-/** \brief Inicializa a comunicação serial
- *		e aguarda uma conexão.
- *		Necessário chamarconfig_usarts() antes.
+/** \brief Inicializa a a estrutura ciclometro
+ *		que persiste as informações do deslocamento
  *
- * \param none
+ * \param &ciclo tipo ciclometro
  * \return none
  *
- */ 
-void init_usart(void);
+ */
+void init_ciclo(ciclometro *ciclo);
 
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
@@ -78,7 +70,14 @@ void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo);
  */
 void getCircunferencia(uint8_t roda, ciclometro *ciclo);
 
-
+/** \brief  envia os dados pela serial
+ *		através de um printf para serem apresentados ao usuário
+ *
+ * \param ciclo tipo ciclometro 
+ * \return none
+ *
+ */
+void sendValues(ciclometro *ciclo);
 
 
 #endif /* MY_DRIVERS_H_ */

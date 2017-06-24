@@ -30,9 +30,9 @@
       <framework-data>
         <options>
           <option id="common.boards" value="Add" config="" content-id="Atmel.ASF" />
+          <option id="sam0.drivers.port" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.drivers.system" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.utils.stdio.stdio_serial" value="Add" config="" content-id="Atmel.ASF" />
-          <option id="sam0.drivers.port" value="Add" config="" content-id="Atmel.ASF" />
           <option id="common.applications.user_application.xplained_pro2" value="Add" config="" content-id="Atmel.ASF" />
           <option id="common.utils" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.utils.cmsis.samr21.source.template" value="Add" config="" content-id="Atmel.ASF" />
@@ -51,6 +51,9 @@
           <file path="src/ASF/common/utils/parts.h" framework="" version="" source="common/utils/parts.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/boards/samr21_xplained_pro/board_init.c" framework="" version="" source="sam0/boards/samr21_xplained_pro/board_init.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/boards/samr21_xplained_pro/samr21_xplained_pro.h" framework="" version="" source="sam0/boards/samr21_xplained_pro/samr21_xplained_pro.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/port/port.c" framework="" version="" source="sam0/drivers/port/port.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/port/port.h" framework="" version="" source="sam0/drivers/port/port.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/port/quick_start/qs_port_basic.h" framework="" version="" source="sam0/drivers/port/quick_start/qs_port_basic.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/clock/clock.h" framework="" version="" source="sam0/drivers/system/clock/clock.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock.c" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_config_check.h" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_config_check.h" changed="False" content-id="Atmel.ASF" />
@@ -177,9 +180,6 @@
           <file path="src/ASF/sam0/drivers/sercom/usart/quick_start_dma/qs_usart_dma_use.h" framework="" version="3.34.1" source="sam0\drivers\sercom\usart\quick_start_dma\qs_usart_dma_use.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/stdio/read.c" framework="" version="3.34.1" source="sam0\utils\stdio\read.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/stdio/write.c" framework="" version="3.34.1" source="sam0\utils\stdio\write.c" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/port/port.c" framework="" version="3.34.1" source="sam0\drivers\port\port.c" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/port/quick_start/qs_port_basic.h" framework="" version="3.34.1" source="sam0\drivers\port\quick_start\qs_port_basic.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/port/port.h" framework="" version="3.34.1" source="sam0\drivers\port\port.h" changed="False" content-id="Atmel.ASF" />
         </files>
         <documentation help="http://asf.atmel.com/docs/3.34.1/common.applications.user_application.xplained_pro2.samr21_xplained_pro/html/index.html" />
         <offline-documentation help="" />
@@ -206,6 +206,19 @@
       <ToolName>EDBG MSD</ToolName>
     </com_atmel_avrdbg_tool_edbg>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
+    <custom>
+      <ToolOptions>
+        <InterfaceProperties>
+          <SwdClock>2000000</SwdClock>
+        </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
+      </ToolOptions>
+      <ToolType>custom</ToolType>
+      <ToolNumber>
+      </ToolNumber>
+      <ToolName>Custom Programming Tool</ToolName>
+    </custom>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -235,6 +248,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -253,7 +267,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -286,6 +299,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -304,7 +318,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=SAMR21_XPLAINED_PRO -D__SAMR21G18A__ -DUSART_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
@@ -319,6 +332,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -337,7 +351,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
 </ArmGcc>
@@ -371,6 +384,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -389,7 +403,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -411,6 +424,7 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+  <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samr21/gcc/samr21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
@@ -423,6 +437,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -441,7 +456,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
@@ -457,6 +471,7 @@
       <Value>../src/ASF/common/utils</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samr21/source</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
       <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
@@ -475,7 +490,6 @@
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
@@ -542,21 +556,66 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\ASF\sam0\drivers\port\port.c">
+    <Compile Include="src\ASF\sam0\drivers\sercom\sercom.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\ASF\sam0\drivers\port\quick_start\qs_port_basic.h">
+    <Compile Include="src\ASF\sam0\utils\stdio\read.c">
       <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\port\port.h">
+    </Compile>
+    <Compile Include="src\ASF\sam0\utils\stdio\write.c">
       <SubType>compile</SubType>
-    </None>
+    </Compile>
     <Compile Include="src\my_drivers.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\my_drivers.h">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_dma\qs_usart_dma_use.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\usart.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_callback\qs_usart_callback.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start\qs_usart_basic_use.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_lin\qs_lin.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom_pinout.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\serial\serial.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\serial\sam0_usart\usart_serial.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\utils\stdio\stdio_serial\stdio_serial.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>
@@ -824,21 +883,21 @@
     <None Include="src\ASF\thirdparty\CMSIS\Include\core_cm0plus.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\sam0\drivers\port\quick_start\qs_port_basic.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samr21\include\instance\mtb.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\common\utils\interrupt.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\common\services\serial\sam0_usart\usart_serial.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\serial\serial.h">
-      <SubType>compile</SubType>
-    </None>
     <Compile Include="src\ASF\common\utils\interrupt\interrupt_sam_nvic.c">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\ASF\sam0\drivers\port\port.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samr21\include\instance\gclk.h">
       <SubType>compile</SubType>
     </None>
@@ -881,45 +940,9 @@
     <Compile Include="src\ASF\sam0\boards\samr21_xplained_pro\board_init.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\ASF\sam0\drivers\sercom\sercom.c">
+    <Compile Include="src\ASF\sam0\drivers\port\port.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\ASF\sam0\drivers\sercom\sercom.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\sercom\sercom_pinout.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_lin\qs_lin.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start\qs_usart_basic_use.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_callback\qs_usart_callback.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_dma\qs_usart_dma_use.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\usart.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.h">
-      <SubType>compile</SubType>
-    </None>
     <Compile Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\clock.c">
       <SubType>compile</SubType>
     </Compile>
@@ -939,15 +962,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\utils\cmsis\samr21\source\system_samr21.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\sam0\utils\stdio\stdio_serial\stdio_serial.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\utils\stdio\read.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ASF\sam0\utils\stdio\write.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">

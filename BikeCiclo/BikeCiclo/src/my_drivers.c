@@ -17,7 +17,7 @@
  * \param none
  * \return none
  *
- */  
+ * 
 void config_usarts(){
 	usart_get_config_defaults(&usart_conf);
 	usart_conf.baudrate    = 9600;
@@ -35,7 +35,7 @@ void config_usarts(){
  * \param none
  * \return none
  *
- */ 
+ *
 void init_usart(){
 	stdio_serial_init(&usart_instance, EDBG_CDC_MODULE, &usart_conf);
 	usart_enable(&usart_instance);
@@ -52,6 +52,23 @@ void init_usart(){
 void getCircunferencia(uint8_t roda, ciclometro *ciclo){
 	float circunferencia = (roda*2.54)*PI/100;
 	ciclo->tamRoda = circunferencia;
+}
+
+/** \brief Inicializa a a estrutura ciclometro
+ *		que persiste as informações do deslocamento
+ *
+ * \param &ciclo tipo ciclometro
+ * \return none
+ *
+ */
+void init_ciclo(ciclometro *ciclo){
+	ciclo->currentSpeed = 0;
+	ciclo->endTime = 0;
+	ciclo->maxSpeed = 0;
+	ciclo->startTime = 0;
+	ciclo->tamRoda = 0;
+	ciclo->travelled = 0;
+	ciclo->situacao = STOPPED;
 }
 
 
@@ -82,4 +99,17 @@ void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo){
 		intervalo = final_time - ciclo->startTime; /**< Intervalo total da seção atual. */
 		med = (ciclo->travelled/intervalo)*3600000; /**< 3600*1000 (segundo em uma hora)*1000 - de ms para s. */
 		ciclo->medSpeed = med;	
+}
+
+/** \brief  envia os dados pela serial
+ *		através de um printf para serem apresentados ao usuário
+ *
+ * \param ciclo tipo ciclometro 
+ * \return none
+ *
+ */
+void sendValues(ciclometro *ciclo){
+	uint8_t decSpeed = 2, decTrav = 3;
+	printf("%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
+		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000));
 }
