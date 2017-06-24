@@ -34,9 +34,9 @@
 #include <asf.h>
 #include <stdio.h>
 
-struct usart_module usart_instance;
-struct usart_config usart_conf;
+#include <my_drivers.h>
 
+#define DIAMETRO_RODA 29 //tamanho da roda em polegadas
 int main (void)
 {
 	system_init();

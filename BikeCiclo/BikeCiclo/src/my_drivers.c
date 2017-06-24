@@ -44,39 +44,42 @@ void init_usart(){
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
  *
- * \param roda tipo uint8_t Diâmetro da roda em polegadas 
- * \return float comprimento da circunferência em metros
+ * \param roda tipo uint8_t Diâmetro da roda em polegadas
+ * \param struct ciclometro guarda o valor calculado da circunferencia
+ * \return none
  *
  */ 
-float getCircunferencia(uint8_t roda){
+void getCircunferencia(uint8_t roda, ciclometro *ciclo){
 	float circunferencia = (roda*2.54)*PI/100;
-	return circunferencia;
+	ciclo->tamRoda = circunferencia;
 }
 
 
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
  *
- * \param roda tipo uint8_t Diâmetro da roda em polegadas 
- * \return float comprimento da circunferência em metros
+ * \param start_time tipo uint32_t instante do pulso anterior em ms 
+ * \param final_time tipo uint32_t instante do pulso atual em ms
+ * \param *ciclo tipo ciclometro struct que persiste os dados
+ * \return none
  *
  */
-uint16_t getSpeed(uint32_t start_time, uint32_t final_time, float circunferencia){
-
-			//tamanho da circunferência da roda multiplicado pelo número de pulsos
-			//e pelo tempo decorrido em milissegundos
-			aux = relogio - lastT;
-			pAux = pulsos;
-			pulsos = 0;
-			lastT = relogio;
-			speed = ((circunferencia*pAux*aux/10)*36000)/2;
-			lastT = relogio;
-			distancia += circunferencia*pAux/10000;//em km
-			/*Envia a velocidade por socket*/
-			//TO DO......
-			//speed=(XX,X), distancia=XX,XXX km
+void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo){
+		//tamanho da circunferência da roda multiplicado pelo número de pulsos
+		//e pelo tempo decorrido em milissegundos
+		uint32_t intervalo = final_time - start_time; /**<intervalo de tempo de uma volta completa da roda. */
+		float speed = ((ciclo->tamRoda*intervalo/10)*36000)/2; /**< em km/h*/
+		/**< Atualiza a velocidade máxima. */
+		if(ciclo->maxSpeed < speed){
+			ciclo->maxSpeed = speed;
 		}
-		wait_period (&info);
-	}
-	
+		/**< Atualiza a distância percorrida. */
+		ciclo->travelled +=(ciclo->tamRoda/1000); /**< em km*/
+		ciclo->currentSpeed = speed;
+		
+		/**< Atualiza a velocidade média. */
+		float med=0;
+		intervalo = final_time - ciclo->startTime; /**< Intervalo total da seção atual. */
+		med = (ciclo->travelled/intervalo)*3600000; /**< 3600*1000 (segundo em uma hora)*1000 - de ms para s. */
+		ciclo->medSpeed = med;	
 }
