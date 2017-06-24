@@ -34,13 +34,69 @@
 #include <asf.h>
 #include <stdio.h>
 #include <my_drivers.h>
+#include <my_drivers.h>
 
 struct usart_module usart_instance;
 struct usart_config usart_conf;
 
+
+//!********************INICIO DA CONFIUGURACAO DA INTERRUPCAO ********************
+
+void configure_extint_channel(void);
+void configure_extint_callbacks(void);
+void extint_detection_callback(void);
+
+//! [setup]
+void configure_extint_channel(void)
+{
+	//! [setup_1]
+	struct extint_chan_conf config_extint_chan;
+	//! [setup_1]
+	//! [setup_2]
+	extint_chan_get_config_defaults(&config_extint_chan);
+	//! [setup_2]
+
+	//! [setup_3]
+	config_extint_chan.gpio_pin           = BUTTON_0_EIC_PIN;
+	config_extint_chan.gpio_pin_mux       = BUTTON_0_EIC_MUX;
+	config_extint_chan.gpio_pin_pull      = EXTINT_PULL_UP;
+	config_extint_chan.detection_criteria = EXTINT_DETECT_BOTH;
+	//! [setup_3]
+	//! [setup_4]
+	extint_chan_set_config(BUTTON_0_EIC_LINE, &config_extint_chan);
+	//! [setup_4]
+}
+
+void configure_extint_callbacks(void)
+{
+	//! [setup_5]
+	extint_register_callback(extint_detection_callback,
+	BUTTON_0_EIC_LINE,
+	EXTINT_CALLBACK_TYPE_DETECT);
+	//! [setup_5]
+	//! [setup_6]
+	extint_chan_enable_callback(BUTTON_0_EIC_LINE,
+	EXTINT_CALLBACK_TYPE_DETECT);
+	//! [setup_6]
+}
+
+//! [setup_7]
+void extint_detection_callback(void)
+{
+	bool pin_state = port_pin_get_input_level(BUTTON_0_PIN);
+	port_pin_set_output_level(LED_0_PIN, pin_state);
+}
+//! [setup_7]
+
+//!********************FIM DA CONFIUGURACAO DA INTERRUPCAO ********************
+
 int main (void)
 {
 	system_init();
+
+	configure_extint_channel();         
+	configure_extint_callbacks();           //configuracao da interrupcao
+	system_interrupt_enable_global();
 
 	/************************************************************************/
 	/* Prepara a comunicação serial                                         */

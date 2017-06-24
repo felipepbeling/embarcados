@@ -8,7 +8,6 @@
 
 
 
-
 /** \brief Realiza a configuração da comunicação serial
  *		entre a placa e o PC, por exemplo.
  *		Padão: 9600bps,  8 bits
@@ -49,6 +48,7 @@ void init_usart(){
  * \return none
  *
  */ 
+
 void getCircunferencia(uint8_t roda, ciclometro *ciclo){
 	float circunferencia = (roda*2.54)*PI/100;
 	ciclo->tamRoda = circunferencia;
