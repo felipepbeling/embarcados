@@ -8,6 +8,7 @@
 
 
 
+
 /** \brief Realiza a configuração da comunicação serial
  *		entre a placa e o PC, por exemplo.
  *		Padão: 9600bps,  8 bits
@@ -16,8 +17,8 @@
  * \param none
  * \return none
  *
- * 
-void config_usarts(){
+ */ 
+void config_usarts(void){
 	usart_get_config_defaults(&usart_conf);
 	usart_conf.baudrate    = 9600;
 	usart_conf.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
@@ -33,13 +34,41 @@ void config_usarts(){
  *
  * \param none
  * \return none
- *
- *
-void init_usart(){
+ */
+void init_usart(void){
 	stdio_serial_init(&usart_instance, EDBG_CDC_MODULE, &usart_conf);
 	usart_enable(&usart_instance);
 }
 
+/** \brief Prepara o acesso à memoria para gravação.
+ *
+ * \param none
+ * \return none
+ */
+void configura_nvm(void){
+	nvm_get_config_defaults(&config_nvm);
+	config_nvm.manual_page_write = false;
+	nvm_set_config(&config_nvm);
+	
+
+}
+
+void saveData(ciclometro *ciclo){
+	/**<inicializa o buffer */
+	for (uint32_t i = 0; i < NVMCTRL_PAGE_SIZE; i++) {
+		page_buffer[i] = 0;
+	}
+	
+	enum status_code error_code; /**< recebe o tipo de erro quando são chamadas funções NVM. */
+	/**< remove todos os dados contidos na página de dados NVM. */
+	do
+	{
+		error_code = nvm_erase_row(
+		100 * NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE);
+	} while (error_code == STATUS_BUSY);
+
+	
+}
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
  *
@@ -48,7 +77,6 @@ void init_usart(){
  * \return none
  *
  */ 
-
 void getCircunferencia(uint8_t roda, ciclometro *ciclo){
 	float circunferencia = (roda*2.54)*PI/100;
 	ciclo->tamRoda = circunferencia;
@@ -68,12 +96,13 @@ void init_ciclo(ciclometro *ciclo){
 	ciclo->startTime = 0;
 	ciclo->tamRoda = 0;
 	ciclo->travelled = 0;
-	ciclo->situacao = STOPPED;
+	ciclo->contador = 0;
+	ciclo->lastTime = 0;
+	ciclo->situacao = READY;
 }
 
 
-/** \brief Calcula o comprimento da 
- *		circunferencia da roda
+/** \brief Calcula as velocidades  e distância percorrida
  *
  * \param start_time tipo uint32_t instante do pulso anterior em ms 
  * \param final_time tipo uint32_t instante do pulso atual em ms
@@ -81,11 +110,13 @@ void init_ciclo(ciclometro *ciclo){
  * \return none
  *
  */
-void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo){
+void getSpeed(uint32_t final_time, ciclometro *ciclo, uint16_t contador){
 		//tamanho da circunferência da roda multiplicado pelo número de pulsos
 		//e pelo tempo decorrido em milissegundos
-		uint32_t intervalo = final_time - start_time; /**<intervalo de tempo de uma volta completa da roda. */
-		float speed = ((ciclo->tamRoda*intervalo/10)*36000)/2; /**< em km/h*/
+		uint32_t intervalo = final_time - ciclo->lastTime; /**<intervalo de tempo de uma volta completa da roda. */
+		float speed = (((ciclo->tamRoda*(contador-ciclo->contador))*intervalo/10)*36000)/2; /**< em km/h*/
+		ciclo->contador = contador;
+		ciclo->lastTime = final_time;
 		/**< Atualiza a velocidade máxima. */
 		if(ciclo->maxSpeed < speed){
 			ciclo->maxSpeed = speed;
@@ -109,7 +140,97 @@ void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo){
  *
  */
 void sendValues(ciclometro *ciclo){
-	uint8_t decSpeed = 2, decTrav = 3;
+	//uint8_t decSpeed = 2, decTrav = 3;
 	printf("%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
 		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000));
+}
+
+void configure_extint_channel(void){
+	//! [setup_1]
+	struct extint_chan_conf config_extint_chan;
+	
+	struct extint_chan_conf config_extint_chan2;
+
+	extint_chan_get_config_defaults(&config_extint_chan);
+	extint_chan_get_config_defaults(&config_extint_chan2);
+	
+	/**< para o botão SW0. */
+	config_extint_chan.gpio_pin           = BUTTON_0_EIC_PIN;	 //BUTTON_0_EIC_PIN;
+	config_extint_chan.gpio_pin_mux       = BUTTON_0_EIC_MUX;   //BUTTON_0_EIC_MUX;
+	config_extint_chan.gpio_pin_pull      = EXTINT_PULL_UP;
+	config_extint_chan.detection_criteria = EXTINT_DETECT_RISING;
+
+	extint_chan_set_config(BUTTON_0_EIC_LINE, &config_extint_chan);
+	
+	/**< Para o sensor. */
+	config_extint_chan2.gpio_pin           = PIN_PA07A_EIC_EXTINT7;	 //BUTTON_0_EIC_PIN;
+	config_extint_chan2.gpio_pin_mux       = MUX_PA07A_EIC_EXTINT7;   //BUTTON_0_EIC_MUX;
+	config_extint_chan2.gpio_pin_pull      = EXTINT_PULL_UP;
+	config_extint_chan.detection_criteria = EXTINT_DETECT_RISING;
+
+	extint_chan_set_config(PIN_PA07A_EIC_EXTINT_NUM, &config_extint_chan2);
+
+}
+
+/** \brief  evento disparado quando ocorre uma borda de subida 
+ *		no pino de entrada, neste caso a variável pulso é incrementada
+ *
+ * \param none
+ * \return none
+ *
+ */
+void extint_detection_callback2(void){
+	/**< callback para o sensor. */
+	bool pin_state = port_pin_get_input_level(PINO_ENTRADA);//BUTTON_0_PIN);
+	if(pin_state == true){
+		if(ciclom.situacao == RUNNING){
+			if(pulsos==0)
+				relogio=0;
+			pulsos++;
+			printf("Pino alto\r\n");
+			sendValues(&ciclom);
+		}
+	}
+}
+	
+/** \brief  evento disparado quando o botão SW0 é precionado
+ *		ao ser pressionado o botão altera o estado do sistema para:
+ *		RUNNING se READY
+ *		STOPPED se RUNNING
+ *		READY se STOPPED
+ *	
+ * \param none
+ * \return none
+ *
+ */
+void extint_detection_callback(void){
+	/**< callback para o botão. */
+	bool pin_state2 = port_pin_get_input_level(BUTTON_0_PIN);
+	if(pin_state2 == true){
+		switch(ciclom.situacao){
+			case: READY:
+				pulsos=0;
+				ciclom.situacao = RUNNING;
+			break;
+			case: RUNNING;
+				ciclom.situacao = STOPPED;
+			break;
+			case: STOPPED;
+				init_ciclo(&ciclom);
+				pulsos = 0;
+			break;
+		}
+		port_pin_toggle_output_level(LED_0_PIN);
+	}
+}
+
+void configure_extint_callbacks(void){
+	/**< Para o botão. */
+	extint_register_callback(extint_detection_callback, BUTTON_0_EIC_LINE, EXTINT_CALLBACK_TYPE_DETECT);
+	extint_chan_enable_callback(BUTTON_0_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
+	
+	/**< Para o Sensor. */
+	extint_register_callback(extint_detection_callback2, PIN_PA07A_EIC_EXTINT_NUM, EXTINT_CALLBACK_TYPE_DETECT);
+	extint_chan_enable_callback(PIN_PA07A_EIC_EXTINT_NUM,EXTINT_CALLBACK_TYPE_DETECT);
+
 }
