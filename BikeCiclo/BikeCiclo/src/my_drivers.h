@@ -13,10 +13,21 @@
 #include <stdio.h>
 #include <stdint.h>
 
+
 #define PI				3.14159265358979323846
 #define DIAMETRO_RODA	29						//tamanho da roda em polegadas
 
-enum movimento {STOPPED, RUNNING};
+#define PINO_ENTRADA PIN_PA07
+
+typedef enum movimento_situacao {STOPPED=1, RUNNING, READY} movimento;
+	
+struct usart_module usart_instance; /**< Estrutura de controle da comunicação serial. */
+struct usart_config usart_conf; /**< Estrutura de configuração da comunicação serial. */
+struct nvm_config config_nvm; /**< Estrutura de configuração do acesso à eeprom. */
+
+float page_buffer[NVMCTRL_PAGE_SIZE]; 
+
+uint8_t pulsos;
 	
 uint32_t relogio;
 /**
@@ -37,8 +48,15 @@ typedef struct{
 	float travelled; /**< Distância percorrida no percurso atual, em km */
 	uint32_t endTime; /**< Momento de encerramento da seção, quando o botão sw0 for precionado. */
 	movimento situacao; /**<identifica a condição atual da seção */
+	uint32_t lastTime; /**< momento do inicio da volta da roda, utilizado para cálculo da velocidade, etc .*/
+	uint16_t contador; /**< contador de pulsos, este representa as voltas já executadas. */
 	}ciclometro;
 
+ciclometro ciclom;
+
+void config_usarts(void);
+void init_usart(void);
+void configura_nvm(void);
 
 /** \brief Inicializa a a estrutura ciclometro
  *		que persiste as informações do deslocamento
@@ -58,7 +76,7 @@ void init_ciclo(ciclometro *ciclo);
  * \return none
  *
  */
-void getSpeed(uint32_t start_time, uint32_t final_time, ciclometro *ciclo);
+void getSpeed(uint32_t final_time, ciclometro *ciclo, uint16_t contador);
 
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
@@ -78,6 +96,9 @@ void getCircunferencia(uint8_t roda, ciclometro *ciclo);
  *
  */
 void sendValues(ciclometro *ciclo);
+
+void configure_extint_channel(void);
+void configure_extint_callbacks(void);
 
 
 #endif /* MY_DRIVERS_H_ */
