@@ -23,9 +23,10 @@ typedef enum movimento_situacao {STOPPED=1, RUNNING, READY} movimento;
 	
 struct usart_module usart_instance; /**< Estrutura de controle da comunicação serial. */
 struct usart_config usart_conf; /**< Estrutura de configuração da comunicação serial. */
-struct nvm_config config_nvm; /**< Estrutura de configuração do acesso à eeprom. */
+//struct nvm_config config_nvm; /**< Estrutura de configuração do acesso à eeprom. */
 
-float page_buffer[NVMCTRL_PAGE_SIZE]; 
+struct tcc_module tcc_instance; /**< Instancia da estrutura do módulo TCC. */
+
 
 uint8_t pulsos;
 	
@@ -54,9 +55,11 @@ typedef struct{
 
 ciclometro ciclom;
 
+enum status_code error_code;/**Códigos de erro para leitura e gravação na memória. */
+uint8_t page_buffer[NVMCTRL_PAGE_SIZE]; /**< vetor para leitura e gravação em memória. */
+
 void config_usarts(void);
 void init_usart(void);
-void configura_nvm(void);
 
 /** \brief Inicializa a a estrutura ciclometro
  *		que persiste as informações do deslocamento
@@ -99,6 +102,49 @@ void sendValues(ciclometro *ciclo);
 
 void configure_extint_channel(void);
 void configure_extint_callbacks(void);
+
+/** \brief  Configuração do módulo TCC
+ *		Utilizado 32kHz, prescaler 16
+  *		Cada ciclo representa 0,5ms
+ * \param none 
+ * \return none
+ *
+ */
+void configure_tcc(void);
+
+/** \brief  Configuração das chamadas quando o intervalo de tempo 
+ *		especificado for concluido
+ *
+ * \param none 
+ * \return none
+ *
+ */
+void configure_tcc_callbacks(void);
+
+/** \brief  Configuração do módulo NVM para leitura e gravação na EEPROM
+ *
+ * \return none
+ *
+ */
+void configure_nvm(void);
+
+/** \brief  Grava os dados da seção em memória
+ *	maxSpeed, medSpeed, tamRoda, travelled,
+ *	startTime, lastTime, situacao, contadore situacao.
+ * \param ciclometro *ciclo
+ * \return none
+ *
+ */
+void gravaMemDados(ciclometro *ciclo);
+
+/** \brief  Leitura dos dados salvos em memória
+ *	maxSpeed, medSpeed, tamRoda, travelled,
+ *	startTime, lastTime, situacao, contadore situacao.
+ * \param ciclometro *ciclo
+ * \return none
+ *
+ */
+void lerMemDados(ciclometro *ciclo);
 
 
 #endif /* MY_DRIVERS_H_ */

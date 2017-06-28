@@ -44,6 +44,7 @@ static PT_THREAD(ptmovimento(struct pt *m_pt)){
 	while(1){
 		PT_WAIT_UNTIL(m_pt, pulsos >1);
 		getSpeed(relogio, &ciclom, pulsos);
+		gravaMemDados(&ciclom);
 	}
 	PT_END(m_pt);
 }
@@ -58,12 +59,15 @@ int main (void)
 	 */
 	config_usarts();
 	init_usart();
+	configure_nvm();
 
+	init_ciclo(&ciclom);
 	ciclom.situacao = STOPPED;
-	//init_ciclo(&ciclom);
+	lerMemDados(&ciclom);
 	
-	/**< Calcula e atualiza o tamanho da roda. */
-	getCircunferencia(DIAMETRO_RODA, &ciclom);
+	/**<inicializa o módulo TCC para o contador. */
+	configure_tcc();
+	configure_tcc_callbacks();
 	
 	/**< Processos para detecção do movimento da roda. E manipulação
 	*	do botão SW0. */
@@ -75,15 +79,6 @@ int main (void)
 	while (1) {
 		
 		ptmovimento(&movimento_pt);
-		/* Is button pressed? *
-		if (port_pin_get_input_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE) {
-			/* Yes, so turn LED on. *
-			port_pin_set_output_level(LED_0_PIN, LED_0_ACTIVE);
-			
-			} else {
-			/* No, so turn LED off. *
-			port_pin_set_output_level(LED_0_PIN, !LED_0_ACTIVE);
-			//printf("LED OFF\r\n");
-		}*/
+
 	}
 }

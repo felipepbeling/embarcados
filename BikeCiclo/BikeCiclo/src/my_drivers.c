@@ -40,35 +40,7 @@ void init_usart(void){
 	usart_enable(&usart_instance);
 }
 
-/** \brief Prepara o acesso à memoria para gravação.
- *
- * \param none
- * \return none
- */
-void configura_nvm(void){
-	nvm_get_config_defaults(&config_nvm);
-	config_nvm.manual_page_write = false;
-	nvm_set_config(&config_nvm);
-	
 
-}
-
-void saveData(ciclometro *ciclo){
-	/**<inicializa o buffer */
-	for (uint32_t i = 0; i < NVMCTRL_PAGE_SIZE; i++) {
-		page_buffer[i] = 0;
-	}
-	
-	enum status_code error_code; /**< recebe o tipo de erro quando são chamadas funções NVM. */
-	/**< remove todos os dados contidos na página de dados NVM. */
-	do
-	{
-		error_code = nvm_erase_row(
-		100 * NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE);
-	} while (error_code == STATUS_BUSY);
-
-	
-}
 /** \brief Calcula o comprimento da 
  *		circunferencia da roda
  *
@@ -141,8 +113,8 @@ void getSpeed(uint32_t final_time, ciclometro *ciclo, uint16_t contador){
  */
 void sendValues(ciclometro *ciclo){
 	//uint8_t decSpeed = 2, decTrav = 3;
-	printf("%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
-		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000));
+	printf("%d,%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
+		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000), ciclo->situacao);
 }
 
 void configure_extint_channel(void){
@@ -168,7 +140,7 @@ void configure_extint_channel(void){
 	config_extint_chan2.gpio_pin_pull      = EXTINT_PULL_UP;
 	config_extint_chan.detection_criteria = EXTINT_DETECT_RISING;
 
-	extint_chan_set_config(PIN_PA07A_EIC_EXTINT_NUM, &config_extint_chan2);
+	extint_chan_set_config(USB_VBUS_EIC_LINE, &config_extint_chan2);
 
 }
 
@@ -188,7 +160,7 @@ void extint_detection_callback2(void){
 				relogio=0;
 			pulsos++;
 			printf("Pino alto\r\n");
-			sendValues(&ciclom);
+			//sendValues(&ciclom);
 		}
 	}
 }
@@ -208,16 +180,19 @@ void extint_detection_callback(void){
 	bool pin_state2 = port_pin_get_input_level(BUTTON_0_PIN);
 	if(pin_state2 == true){
 		switch(ciclom.situacao){
-			case: READY:
+			case READY:
 				pulsos=0;
 				ciclom.situacao = RUNNING;
+				sendValues(&ciclom);
 			break;
-			case: RUNNING;
+			case RUNNING:
 				ciclom.situacao = STOPPED;
+				sendValues(&ciclom);
 			break;
-			case: STOPPED;
+			case STOPPED:
 				init_ciclo(&ciclom);
 				pulsos = 0;
+				sendValues(&ciclom);
 			break;
 		}
 		port_pin_toggle_output_level(LED_0_PIN);
@@ -230,7 +205,156 @@ void configure_extint_callbacks(void){
 	extint_chan_enable_callback(BUTTON_0_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
 	
 	/**< Para o Sensor. */
-	extint_register_callback(extint_detection_callback2, PIN_PA07A_EIC_EXTINT_NUM, EXTINT_CALLBACK_TYPE_DETECT);
-	extint_chan_enable_callback(PIN_PA07A_EIC_EXTINT_NUM,EXTINT_CALLBACK_TYPE_DETECT);
+	extint_register_callback(extint_detection_callback2, USB_VBUS_EIC_LINE, EXTINT_CALLBACK_TYPE_DETECT);
+	extint_chan_enable_callback(USB_VBUS_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
 
 }
+
+/**< Definições para o timer.*/
+/** \brief  evento disparado quando o timer contar 1ms
+ *		aa cada disparo é feito o incremento equivalente à 
+ *		1ms
+ *	
+ * \param tcc_module 
+ * \return none
+ *
+ */
+void tcc_callback_to_relogio1ms( struct tcc_module *const module_inst){
+	relogio++;
+}
+
+
+/** \brief  Evento disparado quando o timer contar 500ms
+ *		a cada disparo é feita a atualização das medições.
+ *	cal - sendValues(Ciclometro *ciclo);
+ *	
+ * \param tcc_module 
+ * \return none
+ *
+ */
+void tcc_callback_to_sendValues( struct tcc_module *const module_inst){
+	sendValues(&ciclom);
+}
+
+/** \brief  Configuração do módulo TCC
+ *		Utilizado 32kHz, prescaler 16
+  *		Cada ciclo representa 0,5ms
+ * \param none 
+ * \return none
+ *
+ */
+void configure_tcc(void){
+
+	struct tcc_config config_tcc;
+
+	tcc_get_config_defaults(&config_tcc, TCC0);
+
+	config_tcc.counter.clock_source = GCLK_GENERATOR_1;
+	config_tcc.counter.clock_prescaler = TCC_CLOCK_PRESCALER_DIV64;
+	config_tcc.counter.period =   2000;
+	config_tcc.compare.match[0] =  2; /**< para disparar o relogio. */
+	config_tcc.compare.match[1] =  1000; /**< para disparar o envio das medições. */
+
+	tcc_init(&tcc_instance, TCC0, &config_tcc);
+	
+	tcc_enable(&tcc_instance);/**< Ativa o módulo TCC. */
+}
+
+/** \brief  Configuração das chamadas quando o intervalo de tempo 
+ *		especificado for concluido
+ *
+ * \param none 
+ * \return none
+ *
+ */
+void configure_tcc_callbacks(void){
+
+	tcc_register_callback(&tcc_instance, tcc_callback_to_relogio1ms, TCC_CALLBACK_CHANNEL_0);
+	tcc_register_callback(&tcc_instance, tcc_callback_to_sendValues, TCC_CALLBACK_CHANNEL_1);
+	
+	tcc_enable_callback(&tcc_instance, TCC_CALLBACK_CHANNEL_0); /**< Ativa a chamada do canal 0. */
+	tcc_enable_callback(&tcc_instance, TCC_CALLBACK_CHANNEL_1); /**< Ativa a chamada do canal 1. */
+}
+
+/** \brief  Leitura dos dados salvos em memória
+ *	maxSpeed, medSpeed, tamRoda, travelled,
+ *	startTime, lastTime, situacao, contadore situacao.
+ * \param ciclometro *ciclo
+ * \return none
+ *
+ */
+void lerMemDados(ciclometro *ciclo){
+	do{
+		error_code = nvm_read_buffer(
+		100 * NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE,
+		page_buffer, NVMCTRL_PAGE_SIZE);
+	} while (error_code == STATUS_BUSY);
+	
+	for (uint32_t i = 0; i < NVMCTRL_PAGE_SIZE; i++) {
+		if(page_buffer[i] == 255)
+			page_buffer[i] = 0;
+	}
+	uint8_t i = 0;
+	ciclo->maxSpeed = (float)page_buffer[i++]/100;
+	ciclo->medSpeed = (float)page_buffer[i++]/100;
+	ciclo->tamRoda = (float)page_buffer[i++]/10000;
+	ciclo->travelled = (float)page_buffer[i++]/1000;
+	ciclo->startTime = page_buffer[i++];
+	ciclo->lastTime = page_buffer[i++];
+	ciclo->situacao = page_buffer[i++];
+	ciclo->contador = 0;
+	ciclo->currentSpeed = 0;
+	if(ciclo->tamRoda <1){
+		/**< Calcula e atualiza o tamanho da roda. */
+		getCircunferencia(DIAMETRO_RODA, &ciclo);
+	}
+}
+
+/** \brief  Grava os dados da seção em memória
+ *	maxSpeed, medSpeed, tamRoda, travelled,
+ *	startTime, lastTime, situacao, contadore situacao.
+ * \param ciclometro *ciclo
+ * \return none
+ *
+ */
+void gravaMemDados(ciclometro *ciclo){
+	/**< Limpa a memória antes de gravar. */
+	do{
+		error_code = nvm_erase_row(
+		100 * NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE);
+	} while (error_code == STATUS_BUSY);
+
+	/**< Prepara o vetor buffer para a gravação. */
+	for (uint32_t i = 0; i < NVMCTRL_PAGE_SIZE; i++) {
+		page_buffer[i] = 0;
+	}
+	uint8_t i = 0;
+	page_buffer[i++] = (uint16_t)ciclo->maxSpeed*100;
+	page_buffer[i++] = (uint16_t)ciclo->medSpeed*100;
+	page_buffer[i++] = (uint16_t)ciclo->tamRoda*10000;
+	page_buffer[i++] = (uint16_t)ciclo->travelled*1000;
+	page_buffer[i++] = ciclo->startTime;
+	page_buffer[i++] = ciclo->lastTime;
+	page_buffer[i++] = ciclo->situacao;
+	
+	/**<Grava os dados. */
+	do{
+		error_code = nvm_write_buffer(
+		100 * NVMCTRL_ROW_PAGES * NVMCTRL_PAGE_SIZE,
+		page_buffer, NVMCTRL_PAGE_SIZE);
+	} while (error_code == STATUS_BUSY);
+}
+
+/** \brief  Configuração do módulo NVM para leitura e gravação na EEPROM
+ *
+ * \return none
+ *
+ */
+void configure_nvm(void){
+	struct nvm_config config_nvm;
+
+	nvm_get_config_defaults(&config_nvm);
+	config_nvm.manual_page_write = false;
+	nvm_set_config(&config_nvm);
+}
+

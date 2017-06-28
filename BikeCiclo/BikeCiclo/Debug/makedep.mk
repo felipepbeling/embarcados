@@ -4,9 +4,15 @@
 
 src\ASF\sam0\drivers\extint\extint_callback.c
 
-src\ASF\sam0\drivers\extint\extint_sam_d_r\extint.c
+src\ASF\sam0\drivers\extint\extint_sam_d_r_h\extint.c
+
+src\ASF\sam0\drivers\nvm\nvm.c
 
 src\ASF\sam0\drivers\sercom\sercom.c
+
+src\ASF\sam0\drivers\tcc\tcc.c
+
+src\ASF\sam0\drivers\tcc\tcc_callback.c
 
 src\ASF\sam0\utils\stdio\read.c
 
