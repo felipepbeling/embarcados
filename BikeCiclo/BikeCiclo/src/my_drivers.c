@@ -113,6 +113,13 @@ void getSpeed(uint32_t final_time, ciclometro *ciclo, uint16_t contador){
  */
 void sendValues(ciclometro *ciclo){
 	//uint8_t decSpeed = 2, decTrav = 3;
+	//uint8_t buffer[] =  ""+(uint16_t) (ciclo->currentSpeed*100)+","+(uint16_t) (ciclo->maxSpeed*100)+","+
+	//(uint16_t) (ciclo->medSpeed*100)+","+(uint16_t) (ciclo->travelled*1000)+","+ciclo->situacao;//
+	//uint8_t buffer[] = ("%d,%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
+	//(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000), ciclo->situacao);
+	
+	//usart_write_buffer_wait(&usart_instance, buffer, sizeof(buffer));
+	
 	printf("%d,%d,%d,%d,%d\r\n", (uint16_t) (ciclo->currentSpeed*100), (uint16_t) (ciclo->maxSpeed*100),
 		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000), ciclo->situacao);
 }
