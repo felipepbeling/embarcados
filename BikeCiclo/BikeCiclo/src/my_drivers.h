@@ -35,9 +35,9 @@ uint32_t relogio;
 *	Estrutura das grandezas medidas
 *	Todas as grandezas são do tipo float.
 *	As grandezas maxSpeed, medSpeed e travelled serão resetadas
-*	apenas quando o botão sw0 for precionado duas vezes, sendo suas
+*	apenas quando o botão sw0 for pressionado duas vezes, sendo suas
 *	informações persistidas mesmo quando o sistema for desligado.
-*	Quando o botão sw0 for precionado pela primeira vez
+*	Quando o botão sw0 for pressionado pela primeira vez
 *	será encerrada a sessão de deslocamento.
 */
 typedef struct{
