@@ -50,8 +50,7 @@ static PT_THREAD(ptmovimento(struct pt *m_pt)){
 }
 
 
-int main (void)
-{
+int main (void){
 	system_init();
 	/** \brief Realiza a configuração da comunicação serial
 	 *		entre a placa e o PC, por exemplo.

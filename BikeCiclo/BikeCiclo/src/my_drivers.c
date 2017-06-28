@@ -117,6 +117,7 @@ void sendValues(ciclometro *ciclo){
 		(uint16_t) (ciclo->medSpeed*100),(uint16_t) (ciclo->travelled*1000), ciclo->situacao);
 }
 
+#define SW4_EIC_LINE              5
 void configure_extint_channel(void){
 	//! [setup_1]
 	struct extint_chan_conf config_extint_chan;
@@ -125,6 +126,7 @@ void configure_extint_channel(void){
 
 	extint_chan_get_config_defaults(&config_extint_chan);
 	extint_chan_get_config_defaults(&config_extint_chan2);
+
 	
 	/**< para o botão SW0. */
 	config_extint_chan.gpio_pin           = BUTTON_0_EIC_PIN;	 //BUTTON_0_EIC_PIN;
@@ -135,12 +137,19 @@ void configure_extint_channel(void){
 	extint_chan_set_config(BUTTON_0_EIC_LINE, &config_extint_chan);
 	
 	/**< Para o sensor. */
-	config_extint_chan2.gpio_pin           = PIN_PA07A_EIC_EXTINT7;	 //BUTTON_0_EIC_PIN;
-	config_extint_chan2.gpio_pin_mux       = MUX_PA07A_EIC_EXTINT7;   //BUTTON_0_EIC_MUX;
+	/**< Configura a GPIO pin*/
+	struct port_config pin_conf2;
+	port_get_config_defaults(&pin_conf2);
+	pin_conf.direction  = PORT_PIN_DIR_INPUT;
+	pin_conf.input_pull = PORT_PIN_PULL_DOWN;
+	port_pin_set_config(EIC_IN_PIN, &pin_conf2);
+	
+	config_extint_chan2.gpio_pin           = EIC_IN_PIN;	 //BUTTON_0_EIC_PIN;
+	config_extint_chan2.gpio_pin_mux       = EIC_IN_PIN_MUX;   //BUTTON_0_EIC_MUX;
 	config_extint_chan2.gpio_pin_pull      = EXTINT_PULL_UP;
 	config_extint_chan.detection_criteria = EXTINT_DETECT_RISING;
 
-	extint_chan_set_config(USB_VBUS_EIC_LINE, &config_extint_chan2);
+	extint_chan_set_config(EIC_IN_CHANNEL, &config_extint_chan2);
 
 }
 
@@ -153,7 +162,7 @@ void configure_extint_channel(void){
  */
 void extint_detection_callback2(void){
 	/**< callback para o sensor. */
-	bool pin_state = port_pin_get_input_level(PINO_ENTRADA);//BUTTON_0_PIN);
+	bool pin_state = port_pin_get_input_level(EIC_IN_PIN);
 	if(pin_state == true){
 		if(ciclom.situacao == RUNNING){
 			if(pulsos==0)
@@ -205,8 +214,8 @@ void configure_extint_callbacks(void){
 	extint_chan_enable_callback(BUTTON_0_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
 	
 	/**< Para o Sensor. */
-	extint_register_callback(extint_detection_callback2, USB_VBUS_EIC_LINE, EXTINT_CALLBACK_TYPE_DETECT);
-	extint_chan_enable_callback(USB_VBUS_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
+	extint_register_callback(extint_detection_callback2, EIC_IN_CHANNEL, EXTINT_CALLBACK_TYPE_DETECT);
+	extint_chan_enable_callback(EIC_IN_CHANNEL,EXTINT_CALLBACK_TYPE_DETECT);
 
 }
 
@@ -252,7 +261,7 @@ void configure_tcc(void){
 	config_tcc.counter.clock_source = GCLK_GENERATOR_1;
 	config_tcc.counter.clock_prescaler = TCC_CLOCK_PRESCALER_DIV64;
 	config_tcc.counter.period =   2000;
-	config_tcc.compare.match[0] =  2; /**< para disparar o relogio. */
+	config_tcc.compare.match[0] =  200; /**< para disparar o relogio. */
 	config_tcc.compare.match[1] =  1000; /**< para disparar o envio das medições. */
 
 	tcc_init(&tcc_instance, TCC0, &config_tcc);

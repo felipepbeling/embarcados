@@ -17,7 +17,11 @@
 #define PI				3.14159265358979323846
 #define DIAMETRO_RODA	29						//tamanho da roda em polegadas
 
-#define PINO_ENTRADA PIN_PA07
+/* GPIO pin utilizados para a entrada do sensor magnético */
+#define GPIO_IN_PIN_EXTINT  EXT3_PIN_10
+#define EIC_IN_CHANNEL      6
+#define EIC_IN_PIN          PIN_PA06A_EIC_EXTINT6
+#define EIC_IN_PIN_MUX      PINMUX_PA06A_EIC_EXTINT6
 
 typedef enum movimento_situacao {STOPPED=1, RUNNING, READY} movimento;
 	
@@ -35,9 +39,9 @@ uint32_t relogio;
 *	Estrutura das grandezas medidas
 *	Todas as grandezas são do tipo float.
 *	As grandezas maxSpeed, medSpeed e travelled serão resetadas
-*	apenas quando o botão sw0 for pressionado duas vezes, sendo suas
+*	apenas quando o botão sw0 for precionado duas vezes, sendo suas
 *	informações persistidas mesmo quando o sistema for desligado.
-*	Quando o botão sw0 for pressionado pela primeira vez
+*	Quando o botão sw0 for precionado pela primeira vez
 *	será encerrada a sessão de deslocamento.
 */
 typedef struct{
@@ -60,6 +64,9 @@ uint8_t page_buffer[NVMCTRL_PAGE_SIZE]; /**< vetor para leitura e gravação em me
 
 void config_usarts(void);
 void init_usart(void);
+
+/**<Estrutura para configuração do pino de entrada. */
+struct port_config pin_conf;
 
 /** \brief Inicializa a a estrutura ciclometro
  *		que persiste as informações do deslocamento
